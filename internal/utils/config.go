@@ -3,10 +3,10 @@ package utils
 import "os"
 
 var (
-	LogDir             string = "/var/log/autoupd"
-	SystemdServiceFile string = "/etc/systemd/system/autoupd.service"
-	SystemdTimerFile   string = "/etc/systemd/system/autoupd.timer"
-	AutoupdConfigFile  string = os.Getenv("HOME") + "/.config/autoupd/config.yaml"
+	LogDir                string = "/var/log/autoupd"
+	SystemdServicePath    string = "/etc/systemd/system/autoupd.service"
+	SystemdTimerPath      string = "/etc/systemd/system/autoupd.timer"
+	AutoupdConfigFilePath string = os.Getenv("HOME") + "/.config/autoupd/config.yaml"
 )
 
 var UpdateCmd = map[string]string{
@@ -22,3 +22,24 @@ var UpdateCmd = map[string]string{
 	"flatpak": "flatpak update --noninteractive",
 	"snap":    "snap refresh",
 }
+
+var serviceUnit = `[Unit]
+Description=Auto system update with autoupd
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/autoupd
+`
+
+var timerUnit = `[Unit]
+Description=Daily run of autoupd
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1d
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+`

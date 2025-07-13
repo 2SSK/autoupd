@@ -32,6 +32,13 @@ var rootCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
+		if !utils.IsTimerActive() {
+			utils.Logger.Println("autoupd.timer not active. Setting up systemd...")
+			if err := utils.SetupSystemdService(); err != nil {
+				utils.Logger.Printf("Systemd setup failed: %v", err)
+			}
+		}
+
 		// Main functionality of the application
 		if err := utils.PerformPackageUpdate(); err != nil {
 			utils.Logger.Println("Update failed: ", err)
