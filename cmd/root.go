@@ -8,9 +8,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var force bool
+
 var rootCmd = &cobra.Command{
 	Use:   "autoupd",
-	Short: "A brief description of your application",
+	Short: "Automatically update system packages with daily automation",
 	Long:  ``,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -27,7 +29,7 @@ var rootCmd = &cobra.Command{
 		utils.SetupLogger()
 
 		// Check if update has already been performed today
-		if ok := utils.WasUpdateSuccessful(); ok {
+		if !force && utils.WasUpdateSuccessful() {
 			utils.Logger.Println("Update already completed successfully today. Skipping...")
 			os.Exit(0)
 		}
@@ -55,5 +57,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force update even if already done today")
 }
