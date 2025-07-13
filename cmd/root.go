@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/2SSK/autoupd/internal/ui/status"
 	"github.com/2SSK/autoupd/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 var force bool
+var showStatus bool
 
 var rootCmd = &cobra.Command{
 	Use:   "autoupd",
@@ -16,6 +18,11 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 
 	Run: func(cmd *cobra.Command, args []string) {
+		if showStatus {
+			status.RunDashboard()
+			os.Exit(0)
+		}
+
 		fmt.Println("Starting autoupd...")
 
 		// Check if the user is running the command as root
@@ -58,4 +65,5 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolVarP(&force, "force", "f", false, "Force update even if already done today")
+	rootCmd.Flags().BoolVarP(&showStatus, "status", "s", false, "Show autoupd status without performing update")
 }
