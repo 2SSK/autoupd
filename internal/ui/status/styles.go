@@ -3,18 +3,27 @@ package status
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	WelcomeStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("33")).
-			Bold(true).
-			Padding(0, 1)
+	mauve   = lipgloss.Color("#cba6f7")
+	base    = lipgloss.Color("#1e1e2e")
+	text    = lipgloss.Color("#cdd6f4")
+	overlay = lipgloss.Color("#313244")
+	green   = lipgloss.Color("#a6e3a1")
+	red     = lipgloss.Color("#f38ba8")
 
-	SubmittedBoxStyle = lipgloss.NewStyle().
-				Border(lipgloss.RoundedBorder()).
-				BorderForeground(lipgloss.Color("63")).
-				Foreground(lipgloss.Color("39")).
-				Padding(1, 2).
-				Margin(1, 0)
+	DashboardStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color(mauve))
 
-	UserOutputStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205"))
+	LeftBoxStyle = lipgloss.NewStyle().
+			BorderForeground(red).
+			Foreground(text)
+
+	BoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(red).
+			Foreground(text)
+
+	FooterStyle = lipgloss.NewStyle().
+			Foreground(green).
+			Align(lipgloss.Center)
 )
