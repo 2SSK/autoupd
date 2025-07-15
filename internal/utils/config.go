@@ -7,6 +7,7 @@ var (
 	SystemdServicePath    string = "/etc/systemd/system/autoupd.service"
 	SystemdTimerPath      string = "/etc/systemd/system/autoupd.timer"
 	AutoupdConfigFilePath string = os.Getenv("HOME") + "/.config/autoupd/config.yaml"
+	IsRollingRelease      bool   = false // Set to true if the system is a rolling release
 )
 
 var UpdateCmd = map[string]string{
@@ -32,12 +33,13 @@ Type=oneshot
 ExecStart=/usr/local/bin/autoupd
 `
 
-var timerUnit = `[Unit]
+var timerUnit = `
+[Unit]
 Description=Daily run of autoupd
 
 [Timer]
 OnBootSec=10min
-OnUnitActiveSec=1d
+OnCalendar=*-*-* 00:00:00
 Persistent=true
 
 [Install]

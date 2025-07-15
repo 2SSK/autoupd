@@ -15,9 +15,12 @@ func SetupSystemdService() error {
 		}
 	}
 
+	// Detect package manager to update the timer unit
+	DetectRollingRelease()
+
 	// Write timer file if not exists
 	if _, err := os.Stat(SystemdTimerPath); os.IsNotExist(err) {
-		if err := os.WriteFile(SystemdTimerPath, []byte(timerUnit), 0644); err != nil {
+		if err := os.WriteFile(SystemdTimerPath, []byte(GetTimerUnit()), 0644); err != nil {
 			return fmt.Errorf("failed to write timer file: %w", err)
 		}
 	}
@@ -42,4 +45,30 @@ func IsTimerActive() bool {
 		return false
 	}
 	return strings.TrimSpace(string(out)) == "active"
+}
+
+func GetTimerUnit() string {
+	if IsRollingRelease {
+		return `[Unit]
+Description=Daily run of autoupd
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+`
+	} else {
+		return `[Unit]
+Description=Weekly run of autoupd
+
+[Timer]
+OnCalendar=Mon *-*-* 00:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+`
+	}
 }

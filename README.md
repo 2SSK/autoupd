@@ -1,16 +1,97 @@
 # autoupd
 
-A simple, zero-config tool to automatically update your system packages daily.
+<p align="center">
+  <img src="./assets/logo.png" alt="autoupd Logo" width="350">
+</p>
 
-`autoupd` automatically detects your system's package manager, performs an update, and sets up a systemd timer to run daily. It's a "set it and forget it" utility for keeping your system up-to-date.
+<p align="center">
+  <strong>A simple, zero-config tool to automatically update your system packages.</strong>
+</p>
 
-## Key Features
+`autoupd` is a "set it and forget it" utility for keeping your system up-to-date. It automatically detects your system's package manager, performs an update, and sets up a systemd timer to run daily for rolling-release distros or weekly for others.
 
-- **Zero-Configuration:** No config files or manual setup needed.
-- **Automatic Automation:** Automatically installs a systemd service and timer for daily updates on the first run.
-- **Broad Support:** Works with most major Linux package managers.
-- **Smart & Safe:** Requires `sudo` for system-level changes and skips updates if a successful one has already run that day.
-- **Log Management:** Keeps organized logs in `/var/log/autoupd` with automatic rotation to save space.
+## How It Works
+
+1.  **Detects Package Manager:** Automatically identifies the package manager on your system (e.g., `apt`, `pacman`, `dnf`).
+2.  **Updates Packages:** Runs the appropriate command to update all system packages.
+3.  **Automates with Systemd:** On the first run, it installs and enables a `systemd` timer to automate future updates.
+    - **Rolling-Release:** Runs daily.
+    - **Other Systems:** Runs weekly.
+
+## Installation
+
+### Prerequisites
+
+- [Go](https://golang.org/doc/install) (for building from source)
+- `git`
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/2SSK/autoupd.git
+
+# Navigate to the project directory
+cd autoupd
+
+# Build the binary
+go build .
+
+# Move the binary to your PATH
+sudo cp autoupd /usr/local/bin/
+
+# Run autoupd for the first time to set up automation
+sudo autoupd
+```
+
+## Usage
+
+After installation, `autoupd` will run automatically. You can also run it manually.
+
+### First Run
+
+To perform the initial update and activate the systemd timer, run:
+
+```bash
+sudo autoupd
+```
+
+This command will:
+
+1.  Ask for your password to gain `sudo` privileges.
+2.  Update all system packages.
+3.  Install and enable a `systemd` timer for automatic updates.
+
+### Manual Updates
+
+To force an update at any time, use the `--force` or `-f` flag:
+
+```bash
+sudo autoupd --force
+```
+
+### View Status
+
+To view the status of `autoupd` without performing an update, use the `--status` or `-s` flag:
+
+```bash
+autoupd --status
+```
+
+This will display a dashboard with information about the last and next update times.
+
+## Automatic Updates
+
+`autoupd` uses a `systemd` timer to run automatically.
+
+- **Service:** `/etc/systemd/system/autoupd.service`
+- **Timer:** `/etc/systemd/system/autoupd.timer`
+
+You can check the status of the timer with:
+
+```bash
+systemctl status autoupd.timer
+```
 
 ## Supported Package Managers
 
@@ -26,45 +107,33 @@ A simple, zero-config tool to automatically update your system packages daily.
 - `yum`
 - `zypper`
 
-## Installation
+## Logs
 
-Ensure you have a working Go environment.
-
-```bash
-go install github.com/2SSK/autoupd@latest
-```
-
-## Usage
-
-To perform the initial update and activate daily automation, run the command with `sudo`. You only need to do this once.
+Logs are stored in `/var/log/autoupd`. You can view the latest log with:
 
 ```bash
-sudo autoupd
+cat /var/log/autoupd/<today's-date>.log
 ```
 
-The first time you run this command, `autoupd` will:
-1.  Ask for your password to gain `sudo` privileges.
-2.  Detect your package manager and update all system packages.
-3.  Install and enable a `systemd` timer (`autoupd.timer`) that will run `autoupd` automatically every day.
+## Uninstallation
 
-After the first run, the systemd timer will handle the daily updates. No further action is required.
-
-## Manual Updates
-
-If you want to force an update at any time, you can run the command again:
+To remove `autoupd` and its related files from your system:
 
 ```bash
-sudo autoupd
+# Stop and disable the systemd timer
+sudo systemctl stop autoupd.timer
+sudo systemctl disable autoupd.timer
+
+# Remove the systemd files
+sudo rm /etc/systemd/system/autoupd.service
+sudo rm /etc/systemd/system/autoupd.timer
+
+# Remove the binary
+sudo rm /usr/local/bin/autoupd
+
+# Remove the log directory
+sudo rm -rf /var/log/autoupd
 ```
-
-If an update was already successfully completed today, it will be skipped unless you wish to run it again.
-
-## Viewing Logs
-
-You can monitor the update history and check for errors in the log files located at:
-`/var/log/autoupd/`
-
-Logs are rotated automatically every 45 days or if the total size exceeds 15MB.
 
 ## License
 

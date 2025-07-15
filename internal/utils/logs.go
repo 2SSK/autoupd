@@ -64,8 +64,24 @@ func SetupLogger() {
 }
 
 func WasUpdateSuccessful() bool {
-	today := time.Now().Format("2006-01-02")
-	logFilePath := fmt.Sprintf("%s/%s.log", LogDir, today)
+	if IsRollingRelease {
+		// Daily: check today's log only
+		today := time.Now().Format("2006-01-02")
+		return checkLogFileForSuccess(today)
+	}
+
+	// Weekly: check past 7 days
+	for i := 0; i < 7; i++ {
+		day := time.Now().AddDate(0, 0, -i).Format("2006-01-02")
+		if checkLogFileForSuccess(day) {
+			return true
+		}
+	}
+	return false
+}
+
+func checkLogFileForSuccess(date string) bool {
+	logFilePath := fmt.Sprintf("%s/%s.log", LogDir, date)
 
 	file, err := os.Open(logFilePath)
 	if err != nil {
@@ -73,14 +89,13 @@ func WasUpdateSuccessful() bool {
 	}
 	defer file.Close()
 
-	// Read all lines
-	var lines []string
 	scanner := bufio.NewScanner(file)
+	var lines []string
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
 
-	// Check from the bottom up
+	// Check from bottom up
 	for i := len(lines) - 1; i >= 0; i-- {
 		line := lines[i]
 

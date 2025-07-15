@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -35,4 +37,26 @@ func PerformPackageUpdate() error {
 
 	Logger.Println("Update completed successfully.")
 	return nil
+}
+
+func DetectRollingRelease() {
+	data, err := os.ReadFile("/etc/os-release")
+	if err != nil {
+		IsRollingRelease = false
+		return
+	}
+
+	content := strings.ToLower(string(data))
+	rollingIDs := []string{
+		"arch", "artix", "manjaro", "void", "gentoo", "nixos", "solus", "opensuse-tumbleweed",
+	}
+
+	for _, id := range rollingIDs {
+		if strings.Contains(content, id) {
+			IsRollingRelease = true
+			return
+		}
+	}
+
+	IsRollingRelease = false
 }
