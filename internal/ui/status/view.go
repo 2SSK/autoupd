@@ -1,6 +1,13 @@
 package status
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"github.com/2SSK/autoupd/internal/utils"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -18,7 +25,7 @@ func (m Model) renderDashboard() string {
 	RightboxHeight := totalHeight - 2
 
 	leftBox := m.LeftView(LeftBoxWidth, boxHeight)
-	rightBox := m.LogView(RightBoxWidth, RightboxHeight, "Right Box Content")
+	rightBox := m.LogView(RightBoxWidth, RightboxHeight)
 
 	return DashboardStyle.
 		Width(totalWidth).
@@ -27,13 +34,11 @@ func (m Model) renderDashboard() string {
 }
 
 func (m Model) LeftView(w, h int) string {
-	msg := m.Title(w, "Left Box Title")
-
 	width := w - 2
 	height := h/3 - 1
-	box1 := m.LogView(width, height, msg)
-	box2 := m.LogView(width, height, msg)
-	box3 := m.LogView(width, height, msg)
+	box1 := m.status(width, height)
+	box2 := m.osInformation(width, height)
+	box3 := m.recentLogs(width, height)
 
 	return LeftBoxStyle.
 		Width(w).
@@ -41,11 +46,13 @@ func (m Model) LeftView(w, h int) string {
 		Render(lipgloss.JoinVertical(lipgloss.Left, box1, box2, box3))
 }
 
-func (m Model) LogView(w, h int, msg string) string {
+func (m Model) LogView(w, h int) string {
+	content := getTodaysLogContent()
+
 	return BoxStyle.
 		Width(w).
 		Height(h).
-		Render(m.Title(w, msg))
+		Render(m.Title(w, "Today's Logs"), "\n"+content)
 }
 
 func (m Model) renderFooter() string {
@@ -61,4 +68,69 @@ func (m Model) Title(w int, msg string) string {
 		Foreground(lipgloss.Color("#fff")).
 		Background(lipgloss.Color("#000")).
 		Render(msg)
+}
+
+func (m Model) status(w, h int) string {
+	status := "Unknown"
+	if utils.WasUpdateSuccessful() {
+		status = "Successful"
+	} else {
+		status = "Failed or Not Run Yet"
+	}
+
+	lastRun := getLastRun()
+	nextRun := getNextRun()
+
+	content := fmt.Sprintf("%s\n%s\n%s",
+		"Today's Update: "+status,
+		"Last Run: "+lastRun,
+		"Next Run: "+nextRun,
+	)
+
+	return BoxStyle.
+		Width(w).
+		Height(h).
+		Render(m.Title(w, "Status Information:") + "\n" + content)
+}
+
+func (m Model) osInformation(w, h int) string {
+	osName := getOSName()
+	pkgManager := utils.DetectPackageManager()
+	kernel := getKernelVersion()
+	timerStatus := "Inactive"
+	if utils.IsTimerActive() {
+		timerStatus = "Active"
+	}
+
+	content := fmt.Sprintf("OS: %s\nPackage Manager: %s\nKernel: %s\nTimer Status: %s", osName, pkgManager, kernel, timerStatus)
+
+	return BoxStyle.
+		Width(w).
+		Height(h).
+		Render(m.Title(w, "System Information:") + "\n" + content)
+}
+
+func (m Model) recentLogs(w, h int) string {
+	files, err := filepath.Glob((utils.LogDir + "/*.log"))
+	if err != nil {
+		return "Error listing log files"
+	}
+
+	sort.Slice(files, func(i, j int) bool {
+		infoI, _ := os.Stat(files[i])
+		infoJ, _ := os.Stat(files[j])
+		return infoI.ModTime().After(infoJ.ModTime())
+	})
+
+	count := min(len(files), 5)
+
+	lines := make([]string, count)
+	for i := 0; i < count; i++ {
+		lines[i] = filepath.Base(files[i])
+	}
+
+	return BoxStyle.
+		Width(w).
+		Height(h).
+		Render(m.Title(w, "Recent Logs:") + "\n" + strings.Join(lines, "\n"))
 }
