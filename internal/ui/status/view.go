@@ -22,7 +22,7 @@ func (m Model) renderDashboard() string {
 	LeftBoxWidth := totalWidth / 3
 	RightBoxWidth := (totalWidth - LeftBoxWidth) - 2
 	boxHeight := totalHeight - 2
-	RightboxHeight := totalHeight - 2
+	RightboxHeight := totalHeight
 
 	leftBox := m.LeftView(LeftBoxWidth, boxHeight)
 	rightBox := m.LogView(RightBoxWidth, RightboxHeight)
@@ -35,7 +35,7 @@ func (m Model) renderDashboard() string {
 
 func (m Model) LeftView(w, h int) string {
 	width := w - 2
-	height := h/3 - 1
+	height := h / 3
 	box1 := m.status(width, height)
 	box2 := m.osInformation(width, height)
 	box3 := m.recentLogs(width, height)

@@ -51,8 +51,10 @@ var rootCmd = &cobra.Command{
 		// Main functionality of the application
 		if err := utils.PerformPackageUpdate(); err != nil {
 			utils.Logger.Println("Update failed: ", err)
+			utils.NotifyFailure("System Update Failed.")
 			os.Exit(1)
 		}
+		utils.NotifySuccess("System Update completed Successfully.")
 	},
 }
 
