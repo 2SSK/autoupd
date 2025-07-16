@@ -173,7 +173,7 @@ func (m Model) recentLogs(w, h int) string {
 	for i := 0; i < count; i++ {
 		name := filepath.Base(files[i])
 		if i == m.selectedLogIdx {
-			lines[i] = lipgloss.NewStyle().Background(lipgloss.Color("#FFD700")).Foreground(lipgloss.Color("#000")).Render("> " + name)
+			lines[i] = lipgloss.NewStyle().Background(lipgloss.Color("#FFD700")).Width(w).Foreground(lipgloss.Color("#000")).Render("> " + name)
 		} else {
 			lines[i] = "  " + name
 		}
