@@ -10,22 +10,6 @@ import (
 	"github.com/2SSK/autoupd/internal/utils"
 )
 
-func getTodaysLogContent() string {
-	today := time.Now().Format("2006-01-02")
-	logFilePath := fmt.Sprintf("%s/%s.log", utils.LogDir, today)
-
-	data, err := os.ReadFile(logFilePath)
-	if err != nil {
-		return "Error reading log file"
-	}
-
-	lines := strings.Split(string(data), "\n")
-	if len(lines) > 20 { // show last 20 lines max
-		lines = lines[len(lines)-20:]
-	}
-	return strings.Join(lines, "\n")
-}
-
 func getLastRun() string {
 	today := time.Now().Format("2006-01-02")
 	logFilePath := fmt.Sprintf("%s/%s.log", utils.LogDir, today)

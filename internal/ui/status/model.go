@@ -5,9 +5,21 @@ import (
 )
 
 type Model struct {
-	width  int
-	height int
+	width, height int
+
+	// For log selection and preview
+	selectedLogIdx  int
+	recentLogFiles  []string
+	logScrollOffset int
+	focus           FocusedBox
 }
+
+type FocusedBox int
+
+const (
+	FocusRecentLogs FocusedBox = iota
+	FocusLogView
+)
 
 func NewModel() Model {
 	return Model{}

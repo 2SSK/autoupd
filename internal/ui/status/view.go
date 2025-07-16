@@ -47,12 +47,58 @@ func (m Model) LeftView(w, h int) string {
 }
 
 func (m Model) LogView(w, h int) string {
-	content := getTodaysLogContent()
+	files, err := filepath.Glob((utils.LogDir + "/*.log"))
+	if err != nil || len(files) == 0 {
+		return BoxStyle.Width(w).Height(h).Render(m.Title(w, "Log Preview") + "\nNo log file selected")
+	}
+	sort.Slice(files, func(i, j int) bool {
+		infoI, _ := os.Stat(files[i])
+		infoJ, _ := os.Stat(files[j])
+		return infoI.ModTime().After(infoJ.ModTime())
+	})
+	idx := m.selectedLogIdx
+	if idx >= len(files) {
+		idx = 0
+	}
+	data, err := os.ReadFile(files[idx])
+	content := ""
+	if err != nil {
+		content = "Error reading log file"
+	} else {
+		lines := strings.Split(string(data), "\n")
+		visibleLines := h - 2 // leave space for title
+		if visibleLines < 1 {
+			visibleLines = 1
+		}
+		totalLines := len(lines)
+		maxOffset := max(0, totalLines-visibleLines)
+		start := m.logScrollOffset
+		if start < 0 {
+			start = 0
+		}
+		if start > maxOffset {
+			start = maxOffset
+		}
+		end := start + visibleLines
+		if end > totalLines {
+			end = totalLines
+		}
+		content = strings.Join(lines[start:end], "\n")
+	}
+	title := filepath.Base(files[idx])
+	style := BoxStyle.Width(w).Height(h)
+	if m.focus == FocusLogView {
+		style = style.BorderForeground(lipgloss.Color("#FFD700")) // highlight border
+	}
+	return style.Render(m.Title(w, title) + "\n" + content)
+}
 
-	return BoxStyle.
-		Width(w).
-		Height(h).
-		Render(m.Title(w, "Today's Logs"), "\n"+content)
+// Helper for max
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func (m Model) renderFooter() string {
@@ -123,14 +169,19 @@ func (m Model) recentLogs(w, h int) string {
 	})
 
 	count := min(len(files), 5)
-
 	lines := make([]string, count)
 	for i := 0; i < count; i++ {
-		lines[i] = filepath.Base(files[i])
+		name := filepath.Base(files[i])
+		if i == m.selectedLogIdx {
+			lines[i] = lipgloss.NewStyle().Background(lipgloss.Color("#FFD700")).Foreground(lipgloss.Color("#000")).Render("> " + name)
+		} else {
+			lines[i] = "  " + name
+		}
 	}
 
-	return BoxStyle.
-		Width(w).
-		Height(h).
-		Render(m.Title(w, "Recent Logs:") + "\n" + strings.Join(lines, "\n"))
+	style := BoxStyle.Width(w).Height(h)
+	if m.focus == FocusRecentLogs {
+		style = style.BorderForeground(lipgloss.Color("#FFD700")) // highlight border
+	}
+	return style.Render(m.Title(w, "Recent Logs:") + "\n" + strings.Join(lines, "\n"))
 }
