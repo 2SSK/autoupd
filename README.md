@@ -10,6 +10,15 @@
 
 `autoupd` is a "set it and forget it" utility for keeping your system up-to-date. It automatically detects your system's package manager, performs an update, and sets up a systemd timer to run daily for rolling-release distros or weekly for others.
 
+## Features
+
+- **Automatic Package Manager Detection:** `autoupd` automatically detects the package manager on your system, supporting a wide range of managers.
+- **Automated Updates:** It sets up a `systemd` timer to run updates daily on rolling-release distributions and weekly on others.
+- **Status Dashboard:** A simple and intuitive dashboard to view the status of your updates.
+- **Force Updates:** Manually trigger an update at any time.
+- **Desktop Notifications:** Get notified about the status of your updates.
+- **Logging:** All update operations are logged to `/var/log/autoupd`.
+
 ## How It Works
 
 1.  **Detects Package Manager:** Automatically identifies the package manager on your system (e.g., `apt`, `pacman`, `dnf`).
@@ -42,6 +51,26 @@ sudo cp autoupd /usr/local/bin/
 
 # Run autoupd for the first time to set up automation
 sudo autoupd
+```
+
+## Uninstallation
+
+To remove `autoupd` and its related files from your system:
+
+```bash
+# Stop and disable the systemd timer
+sudo systemctl stop autoupd.timer
+sudo systemctl disable autoupd.timer
+
+# Remove the systemd files
+sudo rm /etc/systemd/system/autoupd.service
+sudo rm /etc/systemd/system/autoupd.timer
+
+# Remove the binary
+sudo rm /usr/local/bin/autoupd
+
+# Remove the log directory
+sudo rm -rf /var/log/autoupd
 ```
 
 ## Usage
@@ -115,26 +144,7 @@ Logs are stored in `/var/log/autoupd`. You can view the latest log with:
 cat /var/log/autoupd/<today's-date>.log
 ```
 
-## Uninstallation
-
-To remove `autoupd` and its related files from your system:
-
-```bash
-# Stop and disable the systemd timer
-sudo systemctl stop autoupd.timer
-sudo systemctl disable autoupd.timer
-
-# Remove the systemd files
-sudo rm /etc/systemd/system/autoupd.service
-sudo rm /etc/systemd/system/autoupd.timer
-
-# Remove the binary
-sudo rm /usr/local/bin/autoupd
-
-# Remove the log directory
-sudo rm -rf /var/log/autoupd
-```
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
